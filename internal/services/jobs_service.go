@@ -7,10 +7,10 @@ import (
 
 type JobService struct {
 	log  *slog.Logger
-	repo *repositories.JobRepositoryInterface
+	repo repositories.Repositories
 }
 
-func NewJobService(logger *slog.Logger, repo *repositories.JobRepositoryInterface) *JobService {
+func NewJobService(logger *slog.Logger, repo repositories.Repositories) *JobService {
 	return &JobService{
 		log:  logger,
 		repo: repo,

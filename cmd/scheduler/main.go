@@ -3,12 +3,8 @@ package main
 import (
 	"context"
 	"os"
+	"scheduler/internal/app"
 	"scheduler/internal/config"
-	"scheduler/internal/handlers"
-	httpserver "scheduler/internal/http-server"
-	"scheduler/internal/repositories"
-	"scheduler/internal/services"
-	"scheduler/pkg/database/postgres"
 	"scheduler/pkg/lib/slogger"
 )
 
@@ -23,21 +19,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	db, err := postgres.NewDatabase(ctx, config.DbConfig.DBConn)
-	log.Info(config.DbConfig.DBConn)
-
-	dbpool := db.GetPool()
-	defer dbpool.Close()
-
-	repositories := repositories.NewRepositories(dbpool)
-
-	services := services.NewServices(log, repositories)
-
-	handlers := handlers.NewHandlers(log, services)
-
-	server := httpserver.NewServer(log, handlers, config)
-	if err := server.Run(); err != nil {
-		log.Error("Failed to run HTTP server", slogger.Err(err))
+	if err := app.Run(ctx, log, config); err != nil {
+		log.Error("Service encountered an error", slogger.Err(err))
 		os.Exit(1)
 	}
+
 }
