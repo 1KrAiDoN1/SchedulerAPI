@@ -2,19 +2,19 @@ package app
 
 import (
 	"context"
-	"log/slog"
 	"scheduler/internal/config"
-	"scheduler/internal/handlers"
 	httpserver "scheduler/internal/http-server"
+	"scheduler/internal/http-server/handlers"
 	"scheduler/internal/repositories/postgres"
 	"scheduler/internal/services"
-	"scheduler/pkg/lib/slogger"
+
+	"go.uber.org/zap"
 )
 
-func Run(ctx context.Context, log *slog.Logger, config config.ServiceConfig) error {
+func Run(ctx context.Context, log *zap.Logger, config config.ServiceConfig) error {
 	storage, err := postgres.NewDatabase(ctx, config.DbConfig.DBConn)
 	if err != nil {
-		log.Error("Failed to connect to database", slogger.Err(err))
+		log.Error("Failed to connect to database", zap.Error(err))
 		return err
 	}
 	log.Info(config.DbConfig.DBConn)
@@ -22,13 +22,15 @@ func Run(ctx context.Context, log *slog.Logger, config config.ServiceConfig) err
 	dbpool := storage.GetPool()
 	defer dbpool.Close()
 
-	services := services.NewServices(log, storage)
+	jobs_repo := postgres.NewJobsRepository(dbpool)
+
+	services := services.NewServices(log, jobs_repo)
 
 	handlers := handlers.NewHandlers(log, services)
 
 	server := httpserver.NewServer(log, handlers, config)
 	if err := server.Run(); err != nil {
-		log.Error("Failed to run HTTP server", slogger.Err(err))
+		log.Error("Failed to run HTTP server", zap.Error(err))
 		return err
 	}
 	return nil

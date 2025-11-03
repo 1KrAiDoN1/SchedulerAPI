@@ -1,19 +1,20 @@
 package services
 
 import (
-	"log/slog"
 	"scheduler/internal/repositories"
+
+	"go.uber.org/zap"
 )
 
 type Services struct {
-	log *slog.Logger
-	JobServiceInterface
+	log         *zap.Logger
+	JobsService JobServiceInterface
 }
 
-func NewServices(logger *slog.Logger, repo repositories.Repositories) *Services {
+func NewServices(logger *zap.Logger, jobs_repo repositories.JobRepositoryInterface) *Services {
 	return &Services{
-		log:                 logger,
-		JobServiceInterface: NewJobService(logger, repo),
+		log:         logger,
+		JobsService: NewJobsService(logger, jobs_repo),
 	}
 
 }

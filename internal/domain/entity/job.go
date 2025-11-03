@@ -1,5 +1,7 @@
 package entity
 
+import "context"
+
 type Status string
 
 const (
@@ -19,3 +21,17 @@ type Job struct {
 	LastFinishedAt int64       `json:"lastFinishedAt"`
 	Payload        interface{} `json:"payload"`
 }
+
+type RunningJob struct {
+	*Job
+
+	Cancel context.CancelFunc
+}
+
+type JobKind uint8
+
+const (
+	JobUndefined = iota
+	JobKindInterval
+	JobKindOnce
+)

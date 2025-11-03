@@ -1,32 +1,31 @@
 package httpserver
 
 import (
-	//"context"
 	"context"
-	"log/slog"
-	"scheduler/internal/config"
-	"scheduler/internal/handlers"
-	"scheduler/internal/routes"
-	"scheduler/pkg/lib/slogger"
-
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
+	"scheduler/internal/config"
+	"scheduler/internal/http-server/handlers"
+	"scheduler/internal/http-server/routes"
+
 	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
+	//"context"
 )
 
 type Server struct {
 	router   *gin.Engine
 	handlers *handlers.Handlers
-	logger   *slog.Logger
+	logger   *zap.Logger
 	config   config.ServiceConfig
 }
 
-func NewServer(logger *slog.Logger, handlers *handlers.Handlers, cfg config.ServiceConfig) *Server {
+func NewServer(logger *zap.Logger, handlers *handlers.Handlers, cfg config.ServiceConfig) *Server {
 	router := gin.Default()
 
 	return &Server{
@@ -44,7 +43,7 @@ func (s *Server) Run() error {
 	// Канал для ошибок сервера
 	serverErr := make(chan error, 1)
 	go func() {
-		s.logger.Info("Starting HTTP server", slog.String("address", s.config.Address))
+		s.logger.Info("Starting HTTP server", zap.String("address", s.config.Address))
 		if err := s.router.Run(s.config.Address); err != nil {
 			serverErr <- fmt.Errorf("server error: %w", err)
 		}
@@ -60,7 +59,7 @@ func (s *Server) Run() error {
 	case err := <-serverErr:
 		return err
 	case sig := <-quit:
-		s.logger.Info("Received shutdown signal", slog.String("signal", sig.String()))
+		s.logger.Info("Received shutdown signal", zap.String("signal", sig.String()))
 
 		// Получаем доступ к внутреннему http.Server
 		srv := &http.Server{
@@ -72,7 +71,7 @@ func (s *Server) Run() error {
 		defer cancel()
 
 		if err := srv.Shutdown(ctx); err != nil {
-			s.logger.Error("Server forced to shutdown", slogger.Err(err))
+			s.logger.Error("Server forced to shutdown", zap.Error(err))
 		}
 		s.logger.Info("Server gracefully shut down")
 		return nil
@@ -83,6 +82,6 @@ func (s *Server) Run() error {
 func (s *Server) setupRoutes() {
 	api := s.router.Group("/api/v1")
 
-	routes.SetupJobsRoutes(api, s.handlers.JobsHandlerInterface)
+	routes.SetupJobsRoutes(api, s.handlers.JobsHandler)
 
 }

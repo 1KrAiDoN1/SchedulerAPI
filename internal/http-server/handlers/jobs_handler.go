@@ -1,40 +1,40 @@
 package handlers
 
 import (
-	"log/slog"
 	"scheduler/internal/services"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
-type JobHandler struct {
-	log        *slog.Logger
+type JobsHandler struct {
+	log        *zap.Logger
 	jobService services.JobServiceInterface
 }
 
-func NewJobHandler(logger *slog.Logger, jobService services.JobServiceInterface) *JobHandler {
-	return &JobHandler{
+func NewJobsHandler(logger *zap.Logger, jobService services.JobServiceInterface) *JobsHandler {
+	return &JobsHandler{
 		log:        logger,
 		jobService: jobService,
 	}
 }
 
-func (h *JobHandler) CreateJob(c *gin.Context) {
+func (h *JobsHandler) CreateJob(c *gin.Context) {
 	c.JSON(201, gin.H{"message": "CreateJob not implemented yet"})
 }
 
-func (h *JobHandler) GetJobs(c *gin.Context) {
+func (h *JobsHandler) GetJobs(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "GetJobs not implemented yet"})
 }
 
-func (h *JobHandler) GetJobByID(c *gin.Context) {
+func (h *JobsHandler) GetJobByID(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "GetJobs not implemented yet"})
 }
 
-func (h *JobHandler) DeleteJob(c *gin.Context) {
+func (h *JobsHandler) DeleteJob(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "GetJobs not implemented yet"})
 }
 
-func (h *JobHandler) GetJobExecutions(c *gin.Context) {
+func (h *JobsHandler) GetJobExecutions(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "GetJobs not implemented yet"})
 }
