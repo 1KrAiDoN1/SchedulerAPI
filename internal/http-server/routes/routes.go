@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"scheduler/internal/http-server/handlers"
+	handlers "scheduler/internal/domain/handler"
 
 	"github.com/gin-gonic/gin"
 )
