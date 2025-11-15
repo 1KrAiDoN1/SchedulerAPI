@@ -10,15 +10,19 @@ RUN go mod download
 COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/scheduler ./cmd/scheduler/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/worker ./worker/cmd/worker/main.go
 
 
 FROM alpine:latest
 
+RUN apk add --no-cache ca-certificates postgresql-client
+
 WORKDIR /app
 
 COPY --from=builder /app/bin/scheduler /app/bin/scheduler
+COPY --from=builder /app/bin/worker /app/bin/worker
 COPY --from=builder /app/internal/config ./internal/config
-COPY --from=builder /app/.env .env
-
+COPY --from=builder /app/worker/internal/config ./worker/internal/config
+COPY --from=builder /app/migrations ./migrations
 
 CMD ["/app/bin/scheduler"]

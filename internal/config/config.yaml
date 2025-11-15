@@ -5,3 +5,5 @@ database:
   port: 5432 
   user: postgres
   dbname: scheduler
+nats:
+  url: "nats://nats:4222"

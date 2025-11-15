@@ -1,1 +1,163 @@
 # SchedulerAPI
+
+Распределённый планировщик задач на Go с использованием PostgreSQL и NATS JetStream.
+
+## 🚀 Особенности
+
+- **Планировщик задач**: Поддержка одноразовых и периодических задач
+- **Распределённая обработка**: Использование NATS JetStream для распределения задач между воркерами
+- **REST API**: Полноценный HTTP API для управления задачами
+- **Graceful Shutdown**: Корректное завершение всех компонентов системы
+- **Structured Logging**: Логирование с помощью zap
+- **Docker Support**: Полная поддержка Docker и docker-compose
+
+## 📋 Требования
+
+- Go 1.24.3+
+- Docker и Docker Compose
+- PostgreSQL 15+
+- NATS 2.12+
+- Make
+
+## 🛠 Установка и запуск
+
+### 1. Клонирование репозитория
+
+```bash
+git clone https://github.com/1KrAiDoN1/SchedulerAPI.git
+cd SchedulerAPI
+```
+
+### 2. Настройка окружения
+
+Создайте файл `.env` на основе `.env.example`
+
+
+### 3. Запуск сервисов
+
+```bash
+# Собрать Docker образы
+make docker-build
+
+# Запустить все сервисы (PostgreSQL, NATS, Scheduler, Worker)
+make docker-up
+
+# Применить миграции базы данных
+make migrate-up
+```
+
+### 4. Проверка работоспособности
+
+```bash
+# Проверить статус контейнеров
+make docker-ps
+
+# Посмотреть логи
+make docker-logs
+
+```
+
+## 📚 API Документация
+
+
+
+### Jobs API
+
+#### Создать задачу
+
+```bash
+# Создать одноразовую задачу
+POST /api/v1/jobs
+Content-Type: application/json
+
+{
+  "once": "2025-11-15T15:04:05Z",
+  "payload": {
+    "type": "email",
+    "recipient": "user@example.com"
+  }
+}
+
+# Создать периодическую задачу
+POST /api/v1/jobs
+Content-Type: application/json
+
+{
+  "interval": "5m",
+  "payload": {
+    "type": "backup",
+    "target": "database"
+  }
+}
+```
+
+#### Получить все задачи
+
+```bash
+GET /api/v1/jobs
+```
+
+#### Получить задачу по ID
+
+```bash
+GET /api/v1/jobs/{job_id}
+```
+
+#### Удалить задачу
+
+```bash
+DELETE /api/v1/jobs/{job_id}
+```
+
+#### Получить историю выполнений задачи
+
+```bash
+GET /api/v1/jobs/{job_id}/executions
+```
+
+## 🔧 Makefile команды
+
+### Docker команды
+
+```bash
+make docker-build          # Собрать Docker образы
+make docker-up             # Запустить все сервисы
+make docker-down           # Остановить все сервисы
+make docker-restart        # Перезапустить все сервисы
+make docker-stop           # Остановить сервисы (без удаления)
+make docker-start          # Запустить остановленные сервисы
+make docker-ps             # Показать статус контейнеров
+make docker-logs           # Показать логи всех сервисов
+make docker-logs-scheduler # Показать логи планировщика
+make docker-logs-worker    # Показать логи воркера
+make docker-logs-db        # Показать логи базы данных
+make docker-logs-nats      # Показать логи NATS
+```
+
+### Команды миграций
+
+```bash
+make migrate-up      # Применить все миграции
+make migrate-down    # Откатить все миграции
+make migrate-status  # Показать статус миграций (список таблиц)
+```
+
+## 📁 Структура проекта
+
+```
+├── cmd/scheduler/          # Точка входа для планировщика
+├── worker/                 # Worker сервис
+│   ├── cmd/worker/        # Точка входа для воркера
+│   └── internal/          # Внутренний код воркера
+├── internal/              # Внутренний код планировщика
+│   ├── app/              # Инициализация приложения
+│   ├── config/           # Конфигурация
+│   ├── domain/           # Доменные модели
+│   ├── http-server/      # HTTP сервер и handlers
+│   ├── repositories/     # Репозитории (DB, NATS)
+│   └── services/         # Бизнес-логика
+├── migrations/           # SQL миграции
+├── docker-compose.yaml   # Docker compose конфигурация
+├── Dockerfile           # Docker образ
+└── Makefile            # Автоматизация команд
+```
