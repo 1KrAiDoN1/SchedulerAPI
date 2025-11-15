@@ -2,9 +2,9 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"scheduler/internal/domain/entity"
-	repositories "scheduler/internal/domain/repository"
 	"sync"
 	"time"
 
@@ -12,17 +12,21 @@ import (
 	"go.uber.org/zap"
 )
 
+var (
+	ErrJobNotFound = errors.New("job not found")
+)
+
 type JobsService struct {
-	jobsRepo       repositories.JobRepositoryInterface
-	executionsRepo repositories.ExecutionRepositoryInterface
-	publisher      repositories.JobPublisherInterface
+	jobsRepo       JobRepositoryInterface
+	executionsRepo ExecutionRepositoryInterface
+	publisher      JobPublisherInterface
 	running        map[string]*entity.RunningJob
 	runningMu      sync.RWMutex // Мьютекс для защиты map running от конкурентного доступа
 	interval       time.Duration
 	logger         *zap.Logger
 }
 
-func NewJobsService(jobsRepo repositories.JobRepositoryInterface, executionsRepo repositories.ExecutionRepositoryInterface, publisher repositories.JobPublisherInterface, interval time.Duration, logger *zap.Logger) *JobsService {
+func NewJobsService(jobsRepo JobRepositoryInterface, executionsRepo ExecutionRepositoryInterface, publisher JobPublisherInterface, interval time.Duration, logger *zap.Logger) *JobsService {
 	return &JobsService{
 		jobsRepo:       jobsRepo,
 		executionsRepo: executionsRepo,
@@ -32,6 +36,28 @@ func NewJobsService(jobsRepo repositories.JobRepositoryInterface, executionsRepo
 		interval:       interval,
 		logger:         logger,
 	}
+}
+
+type JobRepositoryInterface interface {
+	Create(ctx context.Context, job *entity.Job) error
+	Read(ctx context.Context, jobID string) (*entity.Job, error)
+	List(ctx context.Context) ([]*entity.Job, error)
+	Upsert(ctx context.Context, jobs []*entity.Job) error
+	Delete(ctx context.Context, jobID string) error
+}
+
+type JobPublisherInterface interface {
+	Publish(ctx context.Context, job *entity.Job) error
+}
+
+type JobSubscriberInterface interface {
+	Subscribe(ctx context.Context, handler func(ctx context.Context, execution *entity.Execution) error) error
+	Close() error
+}
+
+type ExecutionRepositoryInterface interface {
+	Create(ctx context.Context, execution *entity.Execution) error
+	GetByJobID(ctx context.Context, jobID string) ([]*entity.Execution, error)
 }
 
 // CreateJob создает новую задачу в репозитории
@@ -312,7 +338,7 @@ func (j *JobsService) GetJob(ctx context.Context, jobID string) (*entity.Job, er
 func (j *JobsService) GetJobs(ctx context.Context) ([]*entity.Job, error) {
 	jobs, err := j.jobsRepo.List(ctx)
 	if err != nil {
-		if err == repositories.ErrJobNotFound {
+		if err == ErrJobNotFound {
 			return []*entity.Job{}, nil
 		}
 		return nil, fmt.Errorf("get jobs: %w", err)

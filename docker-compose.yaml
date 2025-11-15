@@ -21,29 +21,9 @@ services:
         condition: service_healthy
       nats-init:
         condition: service_completed_successfully
-      migrate:
-        condition: service_completed_successfully
     networks:
       - scheduler-network
     restart: unless-stopped
-  
-  migrate:
-    build: .
-    env_file:
-      - .env
-    environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - DB_HOST=db
-      - DB_PORT=5432
-    command: ["/bin/sh", "/app/scripts/migrate.sh"]
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - scheduler-network
-    restart: "no"
 
   worker:
     build: .

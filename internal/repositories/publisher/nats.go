@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"scheduler/internal/domain/entity"
-	repositories "scheduler/internal/domain/repository"
 	"scheduler/internal/models/dto"
 	"time"
 
@@ -14,8 +13,6 @@ import (
 	"github.com/nats-io/nats.go/jetstream"
 	"go.uber.org/zap"
 )
-
-var _ repositories.JobPublisherInterface = (*NATSJobPublisher)(nil)
 
 type NATSJobPublisher struct {
 	js     jetstream.JetStream
@@ -115,10 +112,11 @@ func NewNATSJobPublisher(ctx context.Context, log *zap.Logger, natsURL string) (
 	}, nil
 }
 
-func (p *NATSJobPublisher) Close() {
+func (p *NATSJobPublisher) Close() error {
 	if p.nc != nil && !p.nc.IsClosed() {
 		p.nc.Close()
 	}
+	return nil
 }
 
 func (p *NATSJobPublisher) Publish(ctx context.Context, job *entity.Job) error {

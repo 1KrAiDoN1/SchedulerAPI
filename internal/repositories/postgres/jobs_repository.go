@@ -7,11 +7,15 @@ import (
 	"errors"
 	"fmt"
 	"scheduler/internal/domain/entity"
-	repositories "scheduler/internal/domain/repository"
 	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+var (
+	ErrJobNotFound       = errors.New("job not found")
+	ErrExecutionNotFound = errors.New("execution not found")
 )
 
 type JobsRepository struct {
@@ -101,9 +105,8 @@ func (j *JobsRepository) Read(ctx context.Context, jobID string) (*entity.Job, e
 		&lastFinishedAt,
 		&payloadJSON,
 	)
-
 	if errors.Is(err, pgx.ErrNoRows) {
-		return nil, repositories.ErrJobNotFound
+		return nil, ErrJobNotFound
 	}
 	if err != nil {
 		return nil, fmt.Errorf("query row: %w", err)
@@ -115,7 +118,7 @@ func (j *JobsRepository) Read(ctx context.Context, jobID string) (*entity.Job, e
 			return nil, fmt.Errorf("unmarshal payload: %w", err)
 		}
 	} else {
-		return &entity.Job{}, fmt.Errorf("nil job's payload")
+		return nil, fmt.Errorf("nil job's payload")
 	}
 
 	var interval *time.Duration
@@ -249,7 +252,7 @@ func (r *JobsRepository) Delete(ctx context.Context, jobID string) error {
 	}
 
 	if result.RowsAffected() == 0 {
-		return repositories.ErrJobNotFound
+		return ErrJobNotFound
 	}
 
 	return nil

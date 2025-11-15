@@ -24,8 +24,5 @@ COPY --from=builder /app/bin/worker /app/bin/worker
 COPY --from=builder /app/internal/config ./internal/config
 COPY --from=builder /app/worker/internal/config ./worker/internal/config
 COPY --from=builder /app/migrations ./migrations
-COPY --from=builder /app/scripts/migrate.sh ./scripts/migrate.sh
-
-RUN chmod +x ./scripts/migrate.sh
 
 CMD ["/app/bin/scheduler"]

@@ -5,15 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"scheduler/internal/domain/entity"
-	repositories "scheduler/internal/domain/repository"
 	"time"
 
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	"go.uber.org/zap"
 )
-
-var _ repositories.JobSubscriberInterface = (*NATSJobSubscriber)(nil)
 
 type NATSJobSubscriber struct {
 	js     jetstream.JetStream

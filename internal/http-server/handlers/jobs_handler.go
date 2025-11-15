@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"scheduler/internal/domain/entity"
-	services "scheduler/internal/domain/service"
 	"scheduler/internal/models/dto"
 	"time"
 
@@ -14,19 +13,31 @@ import (
 
 type JobsHandler struct {
 	log        *zap.Logger
-	jobService services.JobServiceInterface
+	jobService JobServiceInterface
 }
 
-func NewJobsHandler(logger *zap.Logger, jobService services.JobServiceInterface) *JobsHandler {
+func NewJobsHandler(logger *zap.Logger, jobService JobServiceInterface) *JobsHandler {
 	return &JobsHandler{
 		log:        logger,
 		jobService: jobService,
 	}
 }
 
+type JobServiceInterface interface {
+	CreateJob(ctx context.Context, job *entity.Job) (string, error)
+	GetJob(ctx context.Context, jobID string) (*entity.Job, error)
+	GetJobs(ctx context.Context) ([]*entity.Job, error)
+	DeleteJob(ctx context.Context, jobID string) error
+	GetJobExecutions(ctx context.Context, jobID string) ([]*entity.Execution, error)
+	CompleteJob(ctx context.Context, jobID string, success bool) error
+	HandleExecutionResult(ctx context.Context, execution *entity.Execution) error
+	Start(ctx context.Context) error
+}
+
 func (h *JobsHandler) CreateJob(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
+
 	var req dto.JobCreate
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.log.Error("Failed to bind JSON", zap.Error(err))
@@ -76,8 +87,9 @@ func (h *JobsHandler) CreateJob(c *gin.Context) {
 }
 
 func (h *JobsHandler) GetJobs(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
+
 	jobs, err := h.jobService.GetJobs(ctx)
 	if err != nil {
 		h.log.Error("Failed to get jobs", zap.Error(err))
@@ -96,8 +108,9 @@ func (h *JobsHandler) GetJobs(c *gin.Context) {
 }
 
 func (h *JobsHandler) GetJobByID(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
+
 	jobID := c.Param("job_id")
 	if jobID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "job_id is required"})
@@ -116,8 +129,9 @@ func (h *JobsHandler) GetJobByID(c *gin.Context) {
 }
 
 func (h *JobsHandler) DeleteJob(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
+
 	jobID := c.Param("job_id")
 	if jobID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "job_id is required"})
@@ -135,8 +149,9 @@ func (h *JobsHandler) DeleteJob(c *gin.Context) {
 }
 
 func (h *JobsHandler) GetJobExecutions(c *gin.Context) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
+
 	jobID := c.Param("job_id")
 	if jobID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "job_id is required"})
