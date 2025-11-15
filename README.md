@@ -15,9 +15,6 @@
 
 - Go 1.24.3+
 - Docker и Docker Compose
-- PostgreSQL 15+
-- NATS 2.12+
-- Make
 
 ## 🛠 Установка и запуск
 
