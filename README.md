@@ -24,7 +24,7 @@
 ### 1. Клонирование репозитория
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/1KrAiDoN1/SchedulerAPI.git
 cd SchedulerAPI
 ```
 

@@ -1,1 +1,2 @@
 docker exec -it schedulerapi-db-1 psql -U postgres -d scheduler -c "SELECT * FROM executions;" 
+git ls-files | xargs wc -l
