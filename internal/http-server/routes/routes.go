@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"scheduler/internal/http-server/handlers"
+	"scheduler/internal/domain/handler"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupJobsRoutes(router *gin.RouterGroup, jobHandler handlers.JobsHandlerInterface) {
+func SetupJobsRoutes(router *gin.RouterGroup, jobHandler handler.JobsHandlerInterface) {
 	jobs := router.Group("/jobs")
 	{
 		jobs.POST("", jobHandler.CreateJob)
