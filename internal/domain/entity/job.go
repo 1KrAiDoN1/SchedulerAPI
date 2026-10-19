@@ -1,25 +1,28 @@
 package entity
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
-type Status string
+type JobStatus string
 
 const (
-	StatusQueued    Status = "queued"
-	StatusRunning   Status = "running"
-	StatusCompleted Status = "completed"
-	StatusFailed    Status = "failed"
+	StatusQueued    JobStatus = "queued"
+	StatusRunning   JobStatus = "running"
+	StatusCompleted JobStatus = "completed"
+	StatusFailed    JobStatus = "failed"
 )
 
 // Job представляет структуру задачи
 type Job struct {
-	ID             string      `json:"id"`
-	Once           string      `json:"once,omitempty"`
-	Interval       string      `json:"interval,omitempty"`
-	Status         Status      `json:"status"`
-	CreatedAt      int64       `json:"createdAt"`
-	LastFinishedAt int64       `json:"lastFinishedAt"`
-	Payload        interface{} `json:"payload"`
+	ID             string
+	Kind           JobKind
+	Status         JobStatus
+	Interval       *time.Duration
+	Once           *int64
+	LastFinishedAt int64
+	Payload        any
 }
 
 type RunningJob struct {

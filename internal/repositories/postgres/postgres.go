@@ -25,9 +25,8 @@ func NewDatabase(ctx context.Context, databaseURL string) (*Storage, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 	return &Storage{
-			pool: pool},
-		nil
-
+		pool: pool,
+	}, nil
 }
 
 func (d *Storage) GetPool() *pgxpool.Pool {
